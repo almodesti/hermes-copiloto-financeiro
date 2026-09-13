@@ -11,27 +11,28 @@
 
 ## TL;DR — o resultado
 
-Uma PME industrial (madeira estrutural, Simples Nacional) vivia uma crise de caixa recorrente
-com a operação financeira **fragmentada e parada**: centenas de pendências de conciliação sem
-tratar, recebíveis históricos que nunca deram baixa e dependência de um BPO externo caro.
+**A dor de todo dono de PME: não ter previsibilidade de caixa nem saber a margem real do
+negócio sem esperar o contador fechar o mês.** Uma indústria (madeira estrutural, Simples
+Nacional) tinha o ERP pago e o Open Finance ligado, mas a operação financeira dependia de
+trabalho manual de alto volume — então o caixa e a margem por obra ficavam sempre um passo
+atrás da realidade.
 
 Sem trocar o ERP e sem contratar um time de dev, orquestrei ferramentas que já existiam num
-**copiloto financeiro autônomo** que:
+**copiloto financeiro autônomo** que devolve ao dono o que ele mais quer: **caixa previsível e
+margem real por obra**.
 
 - **automatiza a conciliação bancária** a partir de um comprovante mandado no chat;
 - **lê nota fiscal e boleto do e-mail** e propõe o lançamento sozinho;
-- **manda a agenda de pagamentos da semana** com alertas anti-golpe;
+- **projeta os pagamentos da semana** (para-brisa, não retrovisor) com alertas anti-golpe;
 - roda **24/7 num VPS**, sem depender do computador de ninguém.
 
-> ⚠️ *Os números agregados abaixo são da minha própria empresa. Revisar o que faz sentido
-> expor publicamente antes de publicar (ver seção "Antes de publicar").*
-
-| Antes | Depois |
+| O que o dono ganha | Como |
 |---|---|
-| Centenas de pendências de conciliação acumuladas | Fluxo conciliado com confirmação humana em 1 toque |
-| Recebíveis históricos sem baixa inflando o faturamento aparente | Base histórica regularizada em lote via API |
-| Conciliação dependente de BPO externo (~R$2,4k/mês) | Operação interna assistida por IA, em teste para substituir o BPO |
-| "App de bolso" com saldo fake | Caixa real, para-brisa e não retrovisor |
+| **Previsibilidade de caixa** — sabe o que entra e sai antes de acontecer | Agenda semanal projetada automaticamente |
+| **Margem real por obra** — quanto cada projeto de fato deu | Custo categorizado por obra a cada lançamento |
+| **Fim do retrabalho de conciliação** | Comprovante no chat → lançamento em 1 toque |
+| **Menos dependência de BPO externo** | Operação interna assistida por IA |
+| **Números confiáveis, não estimados** | Conciliação contínua com confirmação humana |
 
 ---
 
@@ -40,8 +41,8 @@ Sem trocar o ERP e sem contratar um time de dev, orquestrei ferramentas que já 
 O reflexo comum seria "trocar de ERP" ou "comprar mais um SaaS". **Não era isso.**
 
 O ERP (Conta Azul) já estava pago e tinha API. O Open Finance com o banco já estava ligado.
-A ferramenta estava pronta — **o trabalho é que estava parado**: ninguém dava conta de conciliar
-o volume manualmente, então as pendências se acumulavam e o caixa virava uma caixa-preta.
+A ferramenta estava pronta — **o trabalho é que era manual**: conciliar o volume à mão não
+escala, então o caixa e a margem por obra ficavam sempre um passo atrás da realidade.
 
 O problema real não era de software. Era de **braço**: uma tarefa repetitiva, de alto volume,
 que só um humano fazia — e por isso não era feita. É exatamente o tipo de dor em que a IA entra
@@ -121,13 +122,6 @@ aprendizado) · **Telegram Bot API** (interface + confirmação) · **Gmail API*
 NF/boleto) · Python para os scripts de carga e regularização em lote.
 
 ---
-
-## Antes de publicar (checklist de sanitização)
-
-- [ ] Confirmar quais números agregados podem ser públicos (ou trocar por ordem de grandeza/%)
-- [ ] Garantir zero dado real: sem CPF, sem nome de cliente/fornecedor, sem ID de conta, sem valor de fatura individual
-- [ ] Decidir se nomeia a empresa (FLORESTi) ou mantém "PME industrial de madeira"
-- [ ] Gerar 1 GIF/vídeo de 60s da conciliação acontecendo (a demo vale mais que o texto)
 
 ## Sobre
 
