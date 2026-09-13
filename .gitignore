@@ -1,0 +1,10 @@
+# NUNCA versionar segredos ou dados reais
+.env
+.env.*
+*.key
+*_token*
+*_pass*
+certs/
+data/
+*.ofx
+*.xlsx
