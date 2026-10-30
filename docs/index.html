@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Owner to owner: André Modesti applied AI in his own structural-timber factory before offering it to anyone. Hermes is an autonomous finance copilot that reconciles, posts, and forecasts cash 24/7. A Forward Deployed AI Engineering case study, EN/PT.">
+<meta name="author" content="André Modesti">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hermes — Autonomous Finance Copilot">
+<meta property="og:description" content="A factory owner who rebuilt his own cash operation with AI, then shipped it to production. Diagnosis → architecture → 24/7 delivery. EN/PT case study.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="pt_BR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hermes — Autonomous Finance Copilot">
+<meta name="twitter:description" content="Forward Deployed AI Engineering case: an autonomous finance copilot built and run inside a real factory.">
+<meta name="theme-color" content="#0E1311" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ECEEE5" media="(prefers-color-scheme: light)">
+<title>Hermes — Autonomous Finance Copilot</title>
+<style>
+  /* ============================================================
+     TOKENS — "The ledger and the machine"
+     Light = aged ledger paper (green-grey bias). Dark = night terminal.
+     Accent is pine (money + timber), never acid-green.
+     ============================================================ */
+  :root{
+    --ground:#ECEEE5;
+    --raised:#F6F7F1;
+    --sunk:#E2E5D9;
+    --ink:#182018;
+    --ink-soft:#3C463B;
+    --muted:#6B7568;
+    --hair:#CDD2C4;
+    --hair-strong:#B7BDAC;
+    --pine:#2E6B45;
+    --pine-soft:#4E8A62;
+    --brass:#9A6E22;
+    --oak:#7A5C3C;
+    --flag:#A63A2E;        /* anti-fraud red */
+    --amber:#B5831B;       /* divergent-value amber */
+    --font-display:Georgia,'Iowan Old Style','Times New Roman',serif;
+    --font-mono:ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;
+    --font-sans:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --measure:66ch;
+    --shadow:0 1px 0 var(--hair), 0 18px 40px -28px rgba(24,32,24,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ground:#0E1311;
+      --raised:#161D1A;
+      --sunk:#0A0F0D;
+      --ink:#ECE7DB;
+      --ink-soft:#C3C9BF;
+      --muted:#8C968B;
+      --hair:#263029;
+      --hair-strong:#35433A;
+      --pine:#5BA776;
+      --pine-soft:#79BE93;
+      --brass:#C79A4B;
+      --oak:#A8835A;
+      --flag:#E0735F;
+      --amber:#D9A648;
+      --shadow:0 1px 0 rgba(255,255,255,.03), 0 24px 50px -30px #000;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0E1311;--raised:#161D1A;--sunk:#0A0F0D;--ink:#ECE7DB;--ink-soft:#C3C9BF;
+    --muted:#8C968B;--hair:#263029;--hair-strong:#35433A;--pine:#5BA776;--pine-soft:#79BE93;
+    --brass:#C79A4B;--oak:#A8835A;--flag:#E0735F;--amber:#D9A648;
+    --shadow:0 1px 0 rgba(255,255,255,.03), 0 24px 50px -30px #000;
+  }
+  :root[data-theme="light"]{
+    --ground:#ECEEE5;--raised:#F6F7F1;--sunk:#E2E5D9;--ink:#182018;--ink-soft:#3C463B;
+    --muted:#6B7568;--hair:#CDD2C4;--hair-strong:#B7BDAC;--pine:#2E6B45;--pine-soft:#4E8A62;
+    --brass:#9A6E22;--oak:#7A5C3C;--flag:#A63A2E;--amber:#B5831B;
+    --shadow:0 1px 0 var(--hair), 0 18px 40px -28px rgba(24,32,24,.5);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0;background:var(--ground);color:var(--ink);
+    font-family:var(--font-sans);font-size:17px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  /* language visibility */
+  html:not([data-lang="pt"]) [data-l="pt"]{display:none}
+  html[data-lang="pt"] [data-l="en"]{display:none}
+
+  .wrap{max-width:860px;margin:0 auto;padding:0 28px}
+  .spine{max-width:var(--measure)}
+
+  a{color:var(--pine);text-decoration:none}
+  a:hover{text-decoration:underline;text-underline-offset:3px}
+  :focus-visible{outline:2px solid var(--pine);outline-offset:3px;border-radius:3px}
+
+  /* ---------- top bar ---------- */
+  .bar{
+    position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--ground) 88%, transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--hair);
+  }
+  .bar-in{display:flex;align-items:center;gap:16px;height:56px}
+  .brand{font-family:var(--font-mono);font-size:13px;letter-spacing:.22em;font-weight:600;color:var(--ink)}
+  .brand b{color:var(--pine)}
+  .bar-sp{flex:1}
+  .seg{display:inline-flex;border:1px solid var(--hair-strong);border-radius:999px;overflow:hidden;font-family:var(--font-mono);font-size:11px}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--muted);padding:5px 11px;cursor:pointer;letter-spacing:.08em;font:inherit}
+  .seg button[aria-pressed="true"]{background:var(--pine);color:#fff}
+  :root[data-theme="dark"] .seg button[aria-pressed="true"]{color:#0E1311}
+  @media (prefers-color-scheme:dark){.seg button[aria-pressed="true"]{color:#0E1311}}
+  :root[data-theme="light"] .seg button[aria-pressed="true"]{color:#fff}
+
+  /* ---------- hero ---------- */
+  header.hero{padding:72px 0 44px}
+  .status{
+    display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11.5px;
+    letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:26px
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--pine);box-shadow:0 0 0 0 var(--pine)}
+  @media (prefers-reduced-motion:no-preference){.dot{animation:pulse 2.6s infinite}}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--pine) 60%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+  .kicker{font-family:var(--font-mono);font-size:13px;color:var(--brass);letter-spacing:.04em;margin:0 0 18px}
+  h1{
+    font-family:var(--font-display);font-weight:400;font-size:clamp(2.3rem,6vw,3.7rem);
+    line-height:1.05;letter-spacing:-.015em;margin:.1em 0 .35em;text-wrap:balance;max-width:16ch
+  }
+  h1 em{font-style:italic;color:var(--pine)}
+  .lede{font-size:1.18rem;color:var(--ink-soft);max-width:60ch;margin:0}
+  .stack-line{
+    font-family:var(--font-mono);font-size:12.5px;color:var(--muted);margin-top:30px;
+    padding-top:20px;border-top:1px solid var(--hair);line-height:2;letter-spacing:.01em
+  }
+  .stack-line b{color:var(--ink-soft);font-weight:600}
+
+  /* ---------- numbers band ---------- */
+  .band{border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);background:var(--raised);margin-top:8px}
+  .nums{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+  .num{padding:30px 22px;border-left:1px solid var(--hair)}
+  .num:first-child{border-left:0}
+  .num .fig{font-family:var(--font-display);font-size:clamp(1.7rem,3.4vw,2.5rem);line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .num .fig small{font-family:var(--font-mono);font-size:.5em;color:var(--brass);letter-spacing:.04em;margin-left:4px}
+  .num .cap{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:12px;line-height:1.5}
+  @media (max-width:720px){.nums{grid-template-columns:repeat(2,1fr)}.num:nth-child(3){border-left:0}.num:nth-child(odd){border-left:0}.num:nth-child(even){border-left:1px solid var(--hair)}.num:nth-child(3),.num:nth-child(4){border-top:1px solid var(--hair)}}
+
+  /* ---------- sections ---------- */
+  section{padding:58px 0}
+  section+section{border-top:1px solid var(--hair)}
+  .eyebrow{display:flex;align-items:baseline;gap:14px;margin:0 0 26px}
+  .eyebrow .idx{font-family:var(--font-mono);font-size:12px;color:var(--pine);font-weight:600}
+  .eyebrow h2{font-family:var(--font-display);font-weight:400;font-size:clamp(1.5rem,3.4vw,2.05rem);margin:0;letter-spacing:-.01em;color:var(--ink)}
+  p{margin:0 0 1.1em;max-width:var(--measure)}
+  p.spine,ul.spine,.spine p{max-width:var(--measure)}
+  strong{color:var(--ink);font-weight:600}
+  .pine{color:var(--pine);font-weight:600}
+
+  .quote{
+    font-family:var(--font-display);font-style:italic;font-size:1.3rem;line-height:1.5;
+    color:var(--ink);border-left:2px solid var(--pine);padding:4px 0 4px 22px;margin:0 0 1.6em;max-width:54ch
+  }
+
+  /* evidence list */
+  ul.ev{list-style:none;padding:0;margin:0 0 1.2em;max-width:var(--measure)}
+  ul.ev li{position:relative;padding:12px 0 12px 26px;border-bottom:1px solid var(--hair);font-size:.98rem;color:var(--ink-soft)}
+  ul.ev li:before{content:"";position:absolute;left:2px;top:19px;width:9px;height:1px;background:var(--oak)}
+  ul.ev li b{color:var(--ink)}
+
+  /* gets table */
+  .tbl{width:100%;border-collapse:collapse;font-size:.95rem;margin:0 0 1em}
+  .tbl th{text-align:left;font-family:var(--font-mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:0 14px 12px 0;border-bottom:1px solid var(--hair-strong)}
+  .tbl td{padding:14px 14px 14px 0;border-bottom:1px solid var(--hair);vertical-align:top;color:var(--ink-soft)}
+  .tbl td:first-child{color:var(--ink);font-weight:600;width:42%}
+  .tbl-scroll{overflow-x:auto}
+
+  /* ---------- architecture flow ---------- */
+  .flow{display:flex;flex-direction:column;gap:0;margin:8px 0 10px;position:relative}
+  .stage{position:relative;padding:20px 0 20px 108px}
+  .stage:before{content:"";position:absolute;left:47px;top:0;bottom:0;width:2px;background:var(--hair-strong)}
+  .stage:first-child:before{top:28px}
+  .stage:last-child:before{bottom:calc(100% - 28px)}
+  .stage .node{position:absolute;left:38px;top:22px;width:20px;height:20px;border-radius:50%;background:var(--ground);border:2px solid var(--pine);z-index:2}
+  .stage .tag{position:absolute;left:0;top:19px;width:30px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--muted)}
+  .stage h3{font-family:var(--font-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pine);margin:0 0 4px}
+  .stage .desc{font-size:.92rem;color:var(--muted);margin:0 0 12px;max-width:52ch}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-family:var(--font-mono);font-size:11.5px;padding:5px 11px;border:1px solid var(--hair-strong);border-radius:6px;color:var(--ink-soft);background:var(--raised);white-space:nowrap}
+  .chip b{color:var(--ink)}
+  .chip.gate{border-color:color-mix(in srgb,var(--amber) 55%,var(--hair-strong));color:var(--amber)}
+  .chip.human{border-color:var(--pine);color:var(--pine);background:color-mix(in srgb,var(--pine) 9%,var(--raised))}
+  @media (prefers-reduced-motion:no-preference){
+    .flow:after{content:"";position:absolute;left:46px;top:0;width:4px;height:34px;border-radius:4px;
+      background:linear-gradient(var(--pine),transparent);opacity:.9;animation:travel 4.5s cubic-bezier(.5,0,.5,1) infinite;z-index:1}
+  }
+  @keyframes travel{0%{top:-10px;opacity:0}8%{opacity:.9}92%{opacity:.9}100%{top:calc(100% - 10px);opacity:0}}
+  @media (max-width:560px){.stage{padding-left:74px}.stage .node{left:14px}.stage:before{left:23px}.stage .tag{display:none}.flow:after{left:22px}}
+
+  /* stack table */
+  .layers{width:100%;border-collapse:collapse;font-size:.92rem}
+  .layers th{text-align:left;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 16px 10px 0;border-bottom:1px solid var(--hair-strong);font-weight:600}
+  .layers td{padding:12px 16px 12px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+  .layers td:first-child{font-family:var(--font-mono);font-size:12px;color:var(--pine);white-space:nowrap}
+  .layers td:nth-child(2){color:var(--ink);font-weight:600;white-space:nowrap}
+  .layers td:nth-child(3){color:var(--muted)}
+
+  /* decisions grid */
+  .decks{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--hair);border:1px solid var(--hair);border-radius:10px;overflow:hidden}
+  .deck{background:var(--raised);padding:22px}
+  .deck h4{font-family:var(--font-mono);font-size:12px;letter-spacing:.04em;color:var(--ink);margin:0 0 8px;display:flex;gap:9px;align-items:baseline}
+  .deck h4 i{font-style:normal;color:var(--brass);font-size:11px}
+  .deck p{font-size:.9rem;color:var(--ink-soft);margin:0;max-width:none}
+  @media (max-width:640px){.decks{grid-template-columns:1fr}}
+
+  /* role list */
+  ol.role{list-style:none;counter-reset:r;padding:0;margin:0;max-width:var(--measure)}
+  ol.role li{counter-increment:r;position:relative;padding:16px 0 16px 46px;border-bottom:1px solid var(--hair)}
+  ol.role li:before{content:counter(r,decimal-leading-zero);position:absolute;left:0;top:17px;font-family:var(--font-mono);font-size:12px;color:var(--pine);font-weight:600}
+  ol.role li b{color:var(--ink)}
+  ol.role li{color:var(--ink-soft);font-size:.98rem}
+
+  /* transfer callout */
+  .transfer{background:var(--sunk);border:1px solid var(--hair);border-radius:12px;padding:26px 28px;max-width:var(--measure)}
+  .transfer .arrow{font-family:var(--font-mono);color:var(--pine);font-size:.9rem;letter-spacing:.02em;margin-top:14px;display:block}
+
+  /* note / provenance */
+  .note{font-size:.86rem;color:var(--muted);max-width:var(--measure);border-left:2px solid var(--hair-strong);padding-left:16px;margin:1.4em 0 0}
+
+  /* footer */
+  footer{border-top:1px solid var(--hair);background:var(--raised);padding:50px 0 60px}
+  .sig{font-family:var(--font-display);font-size:1.25rem;color:var(--ink);margin:0 0 6px}
+  .foot-mono{font-family:var(--font-mono);font-size:12px;color:var(--muted);line-height:1.9}
+  .foot-mono a{color:var(--pine)}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="wrap bar-in">
+    <span class="brand"><b>HERMES</b> · FINANCE COPILOT</span>
+    <span class="bar-sp"></span>
+    <div class="seg" role="group" aria-label="Language">
+      <button id="en" aria-pressed="true" onclick="setLang('en')">EN</button>
+      <button id="pt" aria-pressed="false" onclick="setLang('pt')">PT</button>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button id="thm" aria-pressed="false" onclick="toggleTheme()" title="Toggle theme">◐</button>
+    </div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="status"><span class="dot"></span><span data-l="en">In production · runs 24/7 · no local machine</span><span data-l="pt">Em produção · roda 24/7 · sem máquina local</span></div>
+
+    <p class="kicker" data-l="en">Portfolio · Forward Deployed AI Engineering</p>
+    <p class="kicker" data-l="pt">Portfólio · Engenharia de IA Forward Deployed</p>
+
+    <h1 data-l="en">An autonomous finance copilot for a real <em>factory</em>.</h1>
+    <h1 data-l="pt">Um copiloto financeiro autônomo para uma <em>indústria</em> real.</h1>
+
+    <p class="lede" data-l="en">Owner to owner: I applied AI in my own manufacturing company before I offered it to anyone. Hermes reconciles, posts, and forecasts the cash of a structural-timber factory — diagnosis to orchestration to end-to-end delivery.</p>
+    <p class="lede" data-l="pt">De dono para dono: apliquei IA na minha própria indústria antes de oferecer a alguém. O Hermes concilia, lança e projeta o caixa de uma fábrica de madeira estrutural — do diagnóstico à orquestração à entrega ponta a ponta.</p>
+
+    <div class="spine">
+      <p class="stack-line">
+        <b>STACK</b>&nbsp;&nbsp;n8n · LLM gpt-4o-mini (vision) · Conta Azul API v2 · Sicoob (FastAPI + mTLS sidecar) · Supabase · Telegram · Gmail · Python · OAuth
+      </p>
+    </div>
+  </div>
+</header>
+
+<div class="band">
+  <div class="wrap">
+    <div class="nums">
+      <div class="num">
+        <div class="fig">R$3.28<small>M</small></div>
+        <div class="cap"><span data-l="en">161 legacy receivables cleared in one API batch — 2023–25 open balance to zero</span><span data-l="pt">161 títulos antigos regularizados em 1 lote via API — saldo 2023–25 a zero</span></div>
+      </div>
+      <div class="num">
+        <div class="fig">3<small>×24/7</small></div>
+        <div class="cap"><span data-l="en">autonomous workflows in production on a VPS, no local machine</span><span data-l="pt">workflows autônomos em produção num VPS, sem máquina local</span></div>
+      </div>
+      <div class="num">
+        <div class="fig">425</div>
+        <div class="cap"><span data-l="en">reconciliation items that were stuck — the tool was ready, the work was manual</span><span data-l="pt">pendências de conciliação paradas — a ferramenta pronta, o trabalho manual</span></div>
+      </div>
+      <div class="num">
+        <div class="fig">1<small>TAP</small></div>
+        <div class="cap"><span data-l="en">end-to-end validated: approve in chat → payable created, settled, confirmed in the ERP</span><span data-l="pt">ciclo validado: aprovar no chat → conta criada, baixada e confirmada no ERP</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- 1 · PROBLEM -->
+  <section>
+    <div class="eyebrow"><span class="idx">01</span><h2 data-l="en">The problem</h2><h2 data-l="pt">O problema</h2></div>
+    <div class="spine">
+      <blockquote class="quote" data-l="en">The problem was not software. It was manual labor — repetitive, high-volume work only a human could do, so it never got done.</blockquote>
+      <blockquote class="quote" data-l="pt">O problema não era de software. Era de braço — tarefa repetitiva, de alto volume, que só um humano fazia, e por isso não era feita.</blockquote>
+
+      <p data-l="en">Every SME owner has the same pain: no visibility of the cash ahead, no real margin per project, waiting for the accountant to close the month. This factory — structural timber, glulam/CLT, on a simplified tax regime — already paid for an ERP with an API and had its Open Finance bank link active. <strong>The tools were ready. The work was manual.</strong> And manual reconciliation at this volume does not scale, so cash and margin were always one step behind reality.</p>
+      <p data-l="pt">A dor de todo dono de PME: sem previsibilidade de caixa, sem margem real por obra, esperando o contador fechar o mês. Esta indústria — madeira estrutural, MLC/CLT, Simples Nacional — já pagava um ERP com API e tinha o Open Finance do banco ligado. <strong>As ferramentas estavam prontas. O trabalho é que era manual.</strong> E conciliar esse volume à mão não escala, então caixa e margem ficavam sempre um passo atrás da realidade.</p>
+
+      <ul class="ev">
+        <li data-l="en"><b>425 reconciliation items</b> stuck in Open Finance — the tool was ready, the work was stopped.</li>
+        <li data-l="pt"><b>425 pendências de conciliação</b> paradas no Open Finance — a ferramenta pronta, o trabalho parado.</li>
+        <li data-l="en">The bank statement shows the amount and the date — <b>never the name behind a Pix</b>. The "who" lived in a chat group and then vanished; each reconciliation stopped and waited.</li>
+        <li data-l="pt">O extrato traz valor e data — <b>nunca o nome por trás do Pix</b>. O "quem" vivia num grupo de chat e evaporava; toda conciliação travava e esperava.</li>
+        <li data-l="en">A legacy liability of <b>R$3.28M across 161 receivables (2023–25)</b> marked "open" in the ERP but already received — inflating apparent revenue and distorting every report.</li>
+        <li data-l="pt">Passivo histórico de <b>R$3,28M em 161 títulos (2023–25)</b> marcados "em aberto" no ERP, mas já recebidos — inflava o faturamento aparente e distorcia todo relatório.</li>
+        <li data-l="en">Bills went overdue with <b>no cross-check</b> between the bank bill register (DDA), the supplier email, and the ERP.</li>
+        <li data-l="pt">Contas venciam esquecidas, <b>sem cruzamento</b> entre o boleto do banco (DDA), o e-mail do fornecedor e o ERP.</li>
+      </ul>
+      <p data-l="en">This is the exact place where AI does the manual work and the human keeps the judgment.</p>
+      <p data-l="pt">É exatamente onde a IA entra no braçal e o humano fica no julgamento.</p>
+    </div>
+  </section>
+
+  <!-- 2 · SOLUTION -->
+  <section>
+    <div class="eyebrow"><span class="idx">02</span><h2 data-l="en">The solution</h2><h2 data-l="pt">A solução</h2></div>
+    <div class="spine">
+      <p data-l="en">I did not change the ERP. I did not hire a dev team. I orchestrated tools that already existed into an <strong>autonomous finance copilot</strong> — and gave the owner what he wants most: <span class="pine">predictable cash and real margin per project</span>.</p>
+      <p data-l="pt">Não troquei o ERP. Não contratei time de dev. Orquestrei ferramentas que já existiam num <strong>copiloto financeiro autônomo</strong> — e devolvi ao dono o que ele mais quer: <span class="pine">caixa previsível e margem real por obra</span>.</p>
+
+      <div class="tbl-scroll">
+      <table class="tbl">
+        <thead><tr>
+          <th data-l="en">What the owner gets</th><th data-l="en">How</th>
+          <th data-l="pt">O que o dono ganha</th><th data-l="pt">Como</th>
+        </tr></thead>
+        <tbody>
+          <tr><td data-l="en">Predictable cash</td><td data-l="en">Weekly payment agenda forecast automatically — a windshield view, not a mirror</td><td data-l="pt">Previsibilidade de caixa</td><td data-l="pt">Agenda semanal projetada automaticamente — para-brisa, não retrovisor</td></tr>
+          <tr><td data-l="en">Real margin per project</td><td data-l="en">Every entry categorized by project / cost center</td><td data-l="pt">Margem real por obra</td><td data-l="pt">Cada lançamento categorizado por obra / centro de custo</td></tr>
+          <tr><td data-l="en">No reconciliation rework</td><td data-l="en">Receipt in chat → entry in one tap</td><td data-l="pt">Fim do retrabalho</td><td data-l="pt">Comprovante no chat → lançamento em 1 toque</td></tr>
+          <tr><td data-l="en">No forgotten bill</td><td data-l="en">Automatic cross-check of DDA × email × ERP</td><td data-l="pt">Nada vence esquecido</td><td data-l="pt">Cruzamento automático DDA × e-mail × ERP</td></tr>
+          <tr><td data-l="en">Reliable numbers, not estimates</td><td data-l="en">Continuous reconciliation with human confirmation</td><td data-l="pt">Números confiáveis, não estimados</td><td data-l="pt">Conciliação contínua com confirmação humana</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · ARCHITECTURE -->
+  <section>
+    <div class="eyebrow"><span class="idx">03</span><h2 data-l="en">How it works</h2><h2 data-l="pt">Como funciona</h2></div>
+    <p class="spine" data-l="en">The flow is a single spine: <strong>trigger → ingestion → AI → human confirmation → action → state</strong>. Nothing that moves money is written without one human tap.</p>
+    <p class="spine" data-l="pt">O fluxo é uma espinha única: <strong>gatilho → ingestão → IA → confirmação humana → ação → estado</strong>. Nada que mexe em dinheiro é gravado sem um toque humano.</p>
+
+    <div class="flow" aria-label="Architecture flow">
+      <div class="stage">
+        <span class="node"></span><span class="tag">IN</span>
+        <h3 data-l="en">Triggers</h3><h3 data-l="pt">Gatilhos</h3>
+        <p class="desc" data-l="en">Three entry points, routed by message type.</p>
+        <p class="desc" data-l="pt">Três entradas, roteadas por tipo de mensagem.</p>
+        <div class="chips">
+          <span class="chip"><b>Telegram</b> · receipt (pdf/photo/text)</span>
+          <span class="chip"><b>Gmail</b> · label "Notas Fiscais"</span>
+          <span class="chip"><b>Cron n8n</b> · 3×/day + weekly</span>
+        </div>
+      </div>
+      <div class="stage">
+        <span class="node"></span><span class="tag">AI</span>
+        <h3 data-l="en">Orchestration + extraction</h3><h3 data-l="pt">Orquestração + extração</h3>
+        <p class="desc" data-l="en">n8n routes; gpt-4o-mini reads the image (bank receipts are image-only PDFs), extracts amount/supplier/date and sets the category.</p>
+        <p class="desc" data-l="pt">O n8n roteia; o gpt-4o-mini lê a imagem (comprovante é PDF sem texto), extrai valor/fornecedor/data e define a categoria.</p>
+        <div class="chips">
+          <span class="chip"><b>n8n</b> · VPS, Docker Swarm</span>
+          <span class="chip"><b>gpt-4o-mini</b> · vision + categorize</span>
+        </div>
+      </div>
+      <div class="stage">
+        <span class="node"></span><span class="tag">⚑</span>
+        <h3 data-l="en">Match-first + risk gate</h3><h3 data-l="pt">Match-first + guardrail</h3>
+        <p class="desc" data-l="en">Before any write, search the ERP for a twin by amount + date (fail-safe dedup). New supplier or unusual amount is flagged — anti-fraud, built in.</p>
+        <p class="desc" data-l="pt">Antes de gravar, busca no ERP um gêmeo por valor + data (dedup falha-segura). Fornecedor novo ou valor fora do padrão é sinalizado — anti-golpe embutido.</p>
+        <div class="chips">
+          <span class="chip gate">match on amount + date</span>
+          <span class="chip gate">new supplier? &gt; R$3k?</span>
+        </div>
+      </div>
+      <div class="stage">
+        <span class="node"></span><span class="tag">YOU</span>
+        <h3 data-l="en">Human-in-the-loop</h3><h3 data-l="pt">Confirmação humana</h3>
+        <p class="desc" data-l="en">The agent proposes; the owner approves. One tap in Telegram closes the task.</p>
+        <p class="desc" data-l="pt">O agente propõe; o dono aprova. Um toque no Telegram resolve.</p>
+        <div class="chips">
+          <span class="chip human">✅ approve &amp; settle</span>
+          <span class="chip human">📥 schedule as payable</span>
+          <span class="chip human">🚫 ignore</span>
+        </div>
+      </div>
+      <div class="stage">
+        <span class="node"></span><span class="tag">OUT</span>
+        <h3 data-l="en">Action</h3><h3 data-l="pt">Ação</h3>
+        <p class="desc" data-l="en">Approved → the ERP creates the payable and settles the installment (OAuth). A FastAPI + mTLS sidecar talks to the bank; a live dashboard shows the cash ahead.</p>
+        <p class="desc" data-l="pt">Aprovado → o ERP cria a conta a pagar e baixa a parcela (OAuth). Um sidecar FastAPI + mTLS fala com o banco; um dashboard ao vivo mostra o caixa à frente.</p>
+        <div class="chips">
+          <span class="chip"><b>Conta Azul API v2</b> · write, OAuth</span>
+          <span class="chip"><b>hermes-sicoob</b> · FastAPI + mTLS</span>
+          <span class="chip"><b>para-brisa</b> · live dashboard</span>
+        </div>
+      </div>
+      <div class="stage">
+        <span class="node"></span><span class="tag">DB</span>
+        <h3 data-l="en">State &amp; memory</h3><h3 data-l="pt">Estado &amp; memória</h3>
+        <p class="desc" data-l="en">Four Supabase tables. The OAuth refresh token rotates on each use — saving the returned token is the difference between "breaks all the time" and "runs on its own".</p>
+        <p class="desc" data-l="pt">Quatro tabelas no Supabase. O refresh token OAuth rotaciona a cada uso — salvar o retornado é a diferença entre "quebra toda hora" e "roda sozinho".</p>
+        <div class="chips">
+          <span class="chip">token vault · rotating</span>
+          <span class="chip">supplier map · learns</span>
+          <span class="chip">pending queue · dedup</span>
+          <span class="chip">recurring watchlist</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tbl-scroll" style="margin-top:26px">
+      <table class="layers">
+        <thead><tr>
+          <th data-l="en">Layer</th><th data-l="en">Technology</th><th data-l="en">Role</th>
+          <th data-l="pt">Camada</th><th data-l="pt">Tecnologia</th><th data-l="pt">Papel</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>ORCH</td><td>n8n — self-hosted, VPS, Docker Swarm</td><td data-l="en">Agentic workflow engine; routes, calls, builds proposals</td><td data-l="pt">Motor de workflow; roteia, chama, monta propostas</td></tr>
+          <tr><td>AI</td><td>LLM gpt-4o-mini (OpenAI)</td><td data-l="en">Vision, field extraction, categorization</td><td data-l="pt">Visão, extração de campos, categorização</td></tr>
+          <tr><td>ERP</td><td>Conta Azul API v2 (OAuth)</td><td data-l="en">Read + write of payables / receivables</td><td data-l="pt">Leitura + escrita de contas</td></tr>
+          <tr><td>BANK</td><td>Sicoob v4/v3 via FastAPI + mTLS sidecar</td><td data-l="en">Balance, statement, bill payment</td><td data-l="pt">Saldo, extrato, pagamento de boleto</td></tr>
+          <tr><td>STATE</td><td>Supabase (Postgres)</td><td data-l="en">Token vault, learning supplier map, queue, watchlist</td><td data-l="pt">Cofre de tokens, mapa que aprende, fila, watchlist</td></tr>
+          <tr><td>UI</td><td>Telegram Bot API</td><td data-l="en">Human-in-the-loop approval + CFO chat</td><td data-l="pt">Aprovação human-in-the-loop + chat CFO</td></tr>
+          <tr><td>CODE</td><td>Python (sidecar + batch scripts)</td><td data-l="en">Sidecar API, bulk load & reconciliation</td><td data-l="pt">API do sidecar, carga e conciliação em lote</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4 · ENGINEERING DECISIONS -->
+  <section>
+    <div class="eyebrow"><span class="idx">04</span><h2 data-l="en">Decisions that made it work</h2><h2 data-l="pt">Decisões que fizeram funcionar</h2></div>
+    <div class="decks">
+      <div class="deck">
+        <h4><i>①</i> <span data-l="en">Human before autonomy</span><span data-l="pt">Humano antes da autonomia</span></h4>
+        <p data-l="en">Every write that moves money needs a human tap. The agent proposes, the owner approves. Only the safe cases go automatic — autonomy with a brake, not blind autonomy.</p>
+        <p data-l="pt">Toda escrita que mexe em dinheiro passa por um toque. O agente propõe, o dono aprova. Só o seguro vira automático — autonomia com trava, não cega.</p>
+      </div>
+      <div class="deck">
+        <h4><i>②</i> <span data-l="en">Match-first dedup</span><span data-l="pt">Match-first (anti-duplicata)</span></h4>
+        <p data-l="en">Before creating anything, search the ERP for an equal record by amount + date. Fail-safe: it warns instead of duplicating. The rule was born from a real duplicate incident.</p>
+        <p data-l="pt">Antes de criar, busca no ERP um igual por valor + data. Falha segura: avisa em vez de duplicar. A regra nasceu de uma duplicata real.</p>
+      </div>
+      <div class="deck">
+        <h4><i>③</i> <span data-l="en">It runs on the VPS, not my Mac</span><span data-l="pt">Roda no VPS, não no meu Mac</span></h4>
+        <p data-l="en">The operation cannot depend on one computer being on. This is infrastructure, not a desktop script.</p>
+        <p data-l="pt">A operação não pode depender de um computador ligado. É infraestrutura, não script de mesa.</p>
+      </div>
+      <div class="deck">
+        <h4><i>④</i> <span data-l="en">Self-renewing OAuth</span><span data-l="pt">OAuth autorrenovável</span></h4>
+        <p data-l="en">The refresh token rotates on each use; the workflow must always save the returned token. This single rule is "breaks constantly" vs "runs on its own".</p>
+        <p data-l="pt">O refresh rotaciona a cada uso; o workflow precisa salvar sempre o token retornado. Essa regra única é "quebra sempre" vs "roda sozinho".</p>
+      </div>
+      <div class="deck">
+        <h4><i>⑤</i> <span data-l="en">A supplier map that learns</span><span data-l="pt">Cadastro que aprende</span></h4>
+        <p data-l="en">Each resolved exception becomes knowledge. Next time, the agent already knows the category and the cost center.</p>
+        <p data-l="pt">Cada exceção resolvida vira conhecimento. Da próxima vez, o agente já sabe a categoria e o centro de custo.</p>
+      </div>
+      <div class="deck">
+        <h4><i>⑥</i> <span data-l="en">Limits respected on purpose</span><span data-l="pt">Limites respeitados de propósito</span></h4>
+        <p data-l="en">The Sicoob API does not schedule staff Pix or list open DDA bills. A partner does those by hand and Hermes reconciles later. The scope is honest — it does not promise what the API cannot do.</p>
+        <p data-l="pt">A API Sicoob não agenda Pix de colaborador nem lista DDA aberto. A sócia faz à mão e o Hermes concilia depois. Escopo honesto — não promete o que a API não faz.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · ANDRÉ'S ROLE -->
+  <section>
+    <div class="eyebrow"><span class="idx">05</span><h2 data-l="en">What I built</h2><h2 data-l="pt">O que eu construí</h2></div>
+    <p class="spine" data-l="en">This is what separates a Forward Deployed case from "I used a tool."</p>
+    <p class="spine" data-l="pt">Isto é o que separa um case Forward Deployed de "usei uma ferramenta".</p>
+    <ol class="role">
+      <li data-l="en"><b>Diagnosed the real pain.</b> No reflex to "change the ERP" or "buy one more SaaS". I saw the problem was manual labor, not software — and put the AI on the labor, the human on the judgment.</li>
+      <li data-l="pt"><b>Diagnosticou a dor real.</b> Sem o reflexo de "trocar o ERP" ou "comprar mais um SaaS". Vi que o problema era de braço, não de software — e pus a IA no braçal, o humano no julgamento.</li>
+      <li data-l="en"><b>Architected the solution.</b> Connected existing tools with criteria: Telegram as the channel (native for a bot, no dedicated number, no ban risk), n8n as orchestrator, Supabase as state, and the human-in-the-loop pattern.</li>
+      <li data-l="pt"><b>Arquitetou a solução.</b> Conectou ferramentas existentes com critério: Telegram como canal (nativo pra bot, sem número dedicado, sem risco de ban), n8n como orquestrador, Supabase como estado, e o padrão human-in-the-loop.</li>
+      <li data-l="en"><b>Wrote production code.</b> The <code>hermes-sicoob</code> sidecar (FastAPI + mTLS with an e-CNPJ certificate) is mine — it solves n8n's lack of client-certificate support. Plus the Python batch scripts (e.g. the R$3.28M cleanup), the validated sale-creation template, and idempotent workflow patches.</li>
+      <li data-l="pt"><b>Escreveu código de produção.</b> O sidecar <code>hermes-sicoob</code> (FastAPI + mTLS com certificado e-CNPJ) é dele — resolve a falta de certificado cliente no n8n. Mais os scripts Python em lote (ex.: os R$3,28M), o template validado de venda e os patches idempotentes.</li>
+      <li data-l="en"><b>Solved the hard integration problems.</b> OAuth refresh-token rotation for Conta Azul (it broke on its own); Telegram callback idempotency (one tap created four duplicate entries); the router for three input types; the match-first dedup.</li>
+      <li data-l="pt"><b>Resolveu os problemas difíceis de integração.</b> Rotação do refresh token do Conta Azul (quebrava sozinho); idempotência do callback do Telegram (um toque gerava quatro duplicatas); o roteador dos três tipos de entrada; o dedup match-first.</li>
+      <li data-l="en"><b>Operated and improved it in production</b>, month after month — reconciled real statements, mapped suppliers, coded the guardrails, and ran the agent in parallel with the external bookkeeping service as an objective test.</li>
+      <li data-l="pt"><b>Operou e evoluiu em produção</b>, mês a mês — conciliou extratos reais, mapeou fornecedores, codificou os guardrails, e rodou o agente em paralelo ao BPO externo como teste objetivo.</li>
+      <li data-l="en"><b>Owns the operation.</b> I applied it in my own factory before selling it to anyone. That is the owner-to-owner credential.</li>
+      <li data-l="pt"><b>É dono da operação.</b> Apliquei na minha própria fábrica antes de vender a alguém. Essa é a credencial de dono para dono.</li>
+    </ol>
+  </section>
+
+  <!-- 6 · TRANSFER -->
+  <section>
+    <div class="eyebrow"><span class="idx">06</span><h2 data-l="en">The same engine, another vertical</h2><h2 data-l="pt">O mesmo motor, outro vertical</h2></div>
+    <div class="transfer">
+      <p style="margin:0" data-l="en">The copilot categorizes <strong>real cost per project</strong> for a factory. The same conversational mechanism — send a sentence, get a categorized entry — applies directly to the <strong>real-estate investor</strong>: <em>"I received the rent of unit X", "I paid the condo fee of Y"</em> → real return per property, with no spreadsheet.</p>
+      <p style="margin:0" data-l="pt">O copiloto categoriza <strong>custo real por obra</strong> para uma indústria. O mesmo mecanismo conversacional — mandar uma frase, receber um lançamento categorizado — se aplica direto ao <strong>investidor imobiliário</strong>: <em>"recebi o aluguel do apto X", "paguei o condomínio do Y"</em> → retorno real por imóvel, sem planilha.</p>
+      <span class="arrow" data-l="en">cost-per-project  →  return-per-property · same architecture, another pain</span>
+      <span class="arrow" data-l="pt">custo-por-obra  →  retorno-por-imóvel · mesma arquitetura, outra dor</span>
+    </div>
+
+    <p class="note" data-l="en"><strong>On the numbers.</strong> Every figure above is drawn from the project's own sources (handoff, code, run logs). Before/after impact metrics — hours saved per week, extraction accuracy, volume per month — are being measured in production and will be added here. No metric on this page is invented.</p>
+    <p class="note" data-l="pt"><strong>Sobre os números.</strong> Toda cifra acima vem das fontes do próprio projeto (handoff, código, logs de execução). Métricas de impacto antes/depois — horas/semana, taxa de acerto, volume/mês — estão sendo medidas em produção e serão acrescentadas aqui. Nenhuma métrica desta página foi inventada.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="sig">André Modesti — ModestIAndré</p>
+    <p class="foot-mono" data-l="en">
+      Engineer and factory owner. I apply AI to operations, owner to owner.<br>
+      I don't sell pretty software — I diagnose the real business pain and connect the specific, buildable solution. Not everything needs AI.<br><br>
+      Technical repo (sanitized) → <a href="https://github.com/almodesti/hermes-copiloto-financeiro">github.com/almodesti/hermes-copiloto-financeiro</a><br>
+      GitHub → <a href="https://github.com/almodesti">github.com/almodesti</a>
+    </p>
+    <p class="foot-mono" data-l="pt">
+      Engenheiro e dono de indústria. Aplico IA à operação, de dono para dono.<br>
+      Não vendo software bonito — diagnostico a dor real do negócio e conecto a solução específica e construível. Nem tudo precisa de IA.<br><br>
+      Repo técnico (sanitizado) → <a href="https://github.com/almodesti/hermes-copiloto-financeiro">github.com/almodesti/hermes-copiloto-financeiro</a><br>
+      GitHub → <a href="https://github.com/almodesti">github.com/almodesti</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function setLang(l){
+    document.documentElement.dataset.lang=l;
+    document.getElementById('en').setAttribute('aria-pressed', l==='en');
+    document.getElementById('pt').setAttribute('aria-pressed', l==='pt');
+    document.documentElement.lang = l;
+  }
+  function toggleTheme(){
+    var cur=document.documentElement.getAttribute('data-theme');
+    var isDark = cur ? cur==='dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', isDark?'light':'dark');
+  }
+  setLang('en');
+</script>
+
+</body>
+</html>
